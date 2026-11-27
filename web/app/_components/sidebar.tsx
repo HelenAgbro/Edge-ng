@@ -70,8 +70,16 @@ function getCollapsedSnapshot() {
   }
 }
 
-function getCollapsedServerSnapshot() {
+function getServerSnapshot() {
   return false;
+}
+
+function subscribeToHydration() {
+  return () => {};
+}
+
+function getHydratedSnapshot() {
+  return true;
 }
 
 /**
@@ -121,7 +129,8 @@ interface Props {
 }
 
 export default function Sidebar(p: Props) {
-  const collapsed = useSyncExternalStore(subscribeCollapsed, getCollapsedSnapshot, getCollapsedServerSnapshot);
+  const collapsed = useSyncExternalStore(subscribeCollapsed, getCollapsedSnapshot, getServerSnapshot);
+  const hydrated = useSyncExternalStore(subscribeToHydration, getHydratedSnapshot, getServerSnapshot);
   const [profileOverride, setProfileOverride] = useState<{ displayName?: string; avatarUrl?: string | null } | null>(null);
 
   useEffect(() => {
@@ -164,7 +173,7 @@ export default function Sidebar(p: Props) {
 
   let cachedUser: { name?: string | null; email?: string; avatarUrl?: string | null } | null = null;
   let cachedAvatar: string | null = null;
-  if (typeof window !== "undefined") {
+  if (hydrated) {
     try {
       cachedAvatar = localStorage.getItem(AVATAR_KEY);
       const rawProfile = localStorage.getItem(PROFILE_KEY);
