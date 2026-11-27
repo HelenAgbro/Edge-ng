@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import AppFrame from "../../_components/app-frame";
 import Dropdown from "../../_components/dropdown";
 import {
-  IconCheck,
   IconGear,
   IconLogout,
   IconMonitor,
@@ -26,6 +26,8 @@ import {
   signOutOtherDevices,
   type DeviceSession,
 } from "@/lib/client-auth";
+
+import { SETTINGS_SECTIONS } from "./settings-links";
 
 const TIMEZONES = [
   "UTC",
@@ -50,7 +52,8 @@ const MARKETS = [
 
 export default function SettingsView() {
   const router = useRouter();
-  const [tab, setTab] = useState<"profile" | "billing" | "export" | "danger">("profile");
+  const requestedTab = useSearchParams().get("tab");
+  const tab = requestedTab === "export" || requestedTab === "danger" ? requestedTab : "profile";
 
   // Profile Form State
   const [email, setEmail] = useState("");
@@ -319,27 +322,21 @@ export default function SettingsView() {
       <div className="mx-auto w-full max-w-[800px] px-4 py-8 sm:px-6">
         {/* Navigation Tabs */}
         <div className="mb-8 border-b border-line">
-          <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto whitespace-nowrap scrollbar-none">
-            {(
-              [
-                { id: "profile", label: "Profile & Preferences" },
-                { id: "billing", label: "Billing & Plan" },
-                { id: "export", label: "Data & Export" },
-                { id: "danger", label: "Account Deletion" },
-              ] as const
-            ).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
+          <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto whitespace-nowrap scrollbar-none" aria-label="Settings sections">
+            {SETTINGS_SECTIONS.map((section) => (
+              <Link
+                key={section.id}
+                href={section.href}
+                scroll={section.id === "billing"}
+                aria-current={tab === section.id ? "page" : undefined}
                 className={`border-b-2 py-3 text-sm font-medium transition ${
-                  tab === t.id
+                  tab === section.id
                     ? "border-accent text-accent"
                     : "border-transparent text-muted hover:border-line hover:text-ink"
                 }`}
               >
-                {t.label}
-              </button>
+                {section.label}
+              </Link>
             ))}
           </nav>
         </div>
@@ -581,59 +578,6 @@ export default function SettingsView() {
                 </div>
               </form>
             )}
-          </section>
-        )}
-
-        {/* Tab 2: Billing & Plan */}
-        {tab === "billing" && (
-          <section className="card p-6 sm:p-8">
-            <h3 className="text-lg font-medium text-ink">Subscription & Billing</h3>
-            <p className="mt-1 text-xs text-muted">
-              Current membership plan and feature access.
-            </p>
-
-            <div className="mt-6 rounded-lg border border-accent/30 bg-card-a p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="tag tag-pass">Active Plan</span>
-                  <h4 className="mt-2 text-base font-medium text-ink">Edge Preview / Core Demo</h4>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-light text-ink">$0</span>
-                  <span className="text-xs text-muted"> / month</span>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-line pt-4 text-xs text-ink/80">
-                <div className="font-medium text-ink">Included in this preview:</div>
-                <ul className="mt-2 space-y-1.5 text-muted">
-                  <li className="flex items-center gap-2">
-                    <IconCheck className="h-3.5 w-3.5 text-pass" />
-                    <span>Unlimited AI trading plan to checklist generation</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <IconCheck className="h-3.5 w-3.5 text-pass" />
-                    <span>Up to 6 evidence images per rule</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <IconCheck className="h-3.5 w-3.5 text-pass" />
-                    <span>Live multi-timeframe trade workspace & pre-trade gate</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <IconCheck className="h-3.5 w-3.5 text-pass" />
-                    <span>Discipline journal & override recording</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-lg border border-line bg-panel p-4 text-xs text-muted">
-              <p>
-                <strong>Note on Billing:</strong> Paid membership tiers, payment processing, and broker integration are
-                part of future development phases as specified in the project roadmap. No payment method is required
-                during the core loop demo.
-              </p>
-            </div>
           </section>
         )}
 
